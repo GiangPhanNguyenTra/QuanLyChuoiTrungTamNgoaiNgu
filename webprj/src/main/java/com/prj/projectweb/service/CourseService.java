@@ -5,6 +5,8 @@ import com.prj.projectweb.dto.request.GiangVienRequest;
 import com.prj.projectweb.dto.response.CourseResponse;
 import com.prj.projectweb.entities.Course;
 import com.prj.projectweb.entities.GiangVien;
+import com.prj.projectweb.exception.AppException;
+import com.prj.projectweb.exception.ErrorCode;
 import com.prj.projectweb.mapper.CourseMapper;
 import com.prj.projectweb.repositories.CourseRepository;
 import com.prj.projectweb.repositories.GiangVienRepository;
@@ -39,8 +41,9 @@ public class CourseService {
 
         // Kiểm tra tên khóa học đã tồn tại chưa
         if (courseRepository.existsByCourseName(courseRequest.getCourseName())) {
-            return "Course name existed";
+            throw  new AppException(ErrorCode.COURSE_EXISTED);
         }
+
 
         Course course = courseMapper.toCourse(courseRequest);
 
@@ -101,15 +104,7 @@ public class CourseService {
     public CourseRequest getCourseById(Long course_id) throws Exception {
         log.info("in get course by id service");
 
-        Optional<Course> optionalCourse = courseRepository.findById(course_id);
-
-        if (!optionalCourse.isPresent()) {
-            throw new Exception("Course not found with ID: " + course_id);
-        }
-
-        Course course = optionalCourse.get();
-
-
-        return courseMapper.toCourseRequest(course);
+        return courseMapper.toCourseRequest(courseRepository.findById(course_id)
+                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOTFOUND)));
     }
 }
