@@ -2,12 +2,14 @@ package com.prj.projectweb.service;
 
 import com.prj.projectweb.dto.request.CourseRequest;
 import com.prj.projectweb.dto.request.GiangVienRequest;
+import com.prj.projectweb.dto.response.CourseResponse;
 import com.prj.projectweb.entities.Course;
 import com.prj.projectweb.entities.GiangVien;
 import com.prj.projectweb.mapper.CourseMapper;
 import com.prj.projectweb.repositories.CourseRepository;
 import com.prj.projectweb.repositories.GiangVienRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
+
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -18,6 +20,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +31,7 @@ public class CourseService {
     CourseRepository courseRepository;
     GiangVienRepository giangVienRepository;
     CourseMapper courseMapper;
+
 
     @Transactional
     public String addCourse(CourseRequest courseRequest) throws Exception {
@@ -78,5 +82,34 @@ public class CourseService {
         }
 
         return courseNames;
+    }
+
+    @Transactional(readOnly = true)
+    public List<CourseResponse> getCourses() {
+        log.info("in get list course service");
+
+        List<Course> courses = courseRepository.findAll();
+
+        List<CourseResponse> courseResponses = courses.stream()
+                .map(courseMapper::toCourseResponse)
+                .collect(Collectors.toList());
+
+        return courseResponses;
+    }
+
+    @Transactional(readOnly = true)
+    public CourseRequest getCourseById(Long course_id) throws Exception {
+        log.info("in get course by id service");
+
+        Optional<Course> optionalCourse = courseRepository.findById(course_id);
+
+        if (!optionalCourse.isPresent()) {
+            throw new Exception("Course not found with ID: " + course_id);
+        }
+
+        Course course = optionalCourse.get();
+
+
+        return courseMapper.toCourseRequest(course);
     }
 }

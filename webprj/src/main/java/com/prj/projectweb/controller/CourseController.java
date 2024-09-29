@@ -2,15 +2,13 @@ package com.prj.projectweb.controller;
 
 import com.prj.projectweb.dto.request.CourseRequest;
 import com.prj.projectweb.dto.response.ApiResponse;
+import com.prj.projectweb.dto.response.CourseResponse;
 import com.prj.projectweb.service.CourseService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -41,6 +39,20 @@ public class CourseController {
         return ApiResponse.<List<String>>builder()
                 .message("added successfully " + result.size() + " courses")
                 .result(result)
+                .build();
+    }
+
+    @GetMapping("/getCourses")
+    ApiResponse<List<CourseResponse>> getCourses() {
+        return ApiResponse.<List<CourseResponse>>builder()
+                .result(courseService.getCourses())
+                .build();
+    }
+
+    @GetMapping("/getCourses/{course_id}")
+    ApiResponse<CourseRequest> getCourseById(@PathVariable("course_id") Long course_id) throws Exception {
+        return ApiResponse.<CourseRequest>builder()
+                .result(courseService.getCourseById(course_id))
                 .build();
     }
 }
