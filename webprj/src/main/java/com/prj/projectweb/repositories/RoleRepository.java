@@ -6,6 +6,4 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface RoleRepository extends JpaRepository<Role, Long> {
-    // Không cần định nghĩa lại các phương thức findAll, findById, save, deleteById
-    // Vì chúng đã có sẵn trong JpaRepository
 }

@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/courses")
 @RequiredArgsConstructor
@@ -20,13 +22,25 @@ import org.springframework.web.bind.annotation.RestController;
 public class CourseController {
     CourseService courseService;
 
-    @PostMapping
+    @PostMapping("/add")
     ApiResponse<String> addCourse(@RequestBody CourseRequest courseRequest) throws Exception {
-       log.info("in api add course");
+       log.info("in api course controller");
         return ApiResponse.<String>builder()
                 .message("create course successfully")
                 .result(courseService.addCourse(courseRequest))
                 .build();
 
+    }
+
+    @PostMapping("/addList")
+    ApiResponse<List<String>> addListCourses(@RequestBody List<CourseRequest> courseRequests) throws Exception {
+        log.info("in add list courses controller");
+
+        List<String> result = courseService.addListCourses(courseRequests);
+
+        return ApiResponse.<List<String>>builder()
+                .message("added successfully " + result.size() + " courses")
+                .result(result)
+                .build();
     }
 }

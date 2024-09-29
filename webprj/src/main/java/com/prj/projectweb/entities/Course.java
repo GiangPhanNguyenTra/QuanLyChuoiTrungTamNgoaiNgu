@@ -46,6 +46,7 @@ public class Course {
     List<String> schedule;
 
     Integer likes;
+
     String image;
     Integer numberOfStudents;
     String object; // Đối tượng học viên

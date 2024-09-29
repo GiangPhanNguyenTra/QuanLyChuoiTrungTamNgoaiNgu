@@ -7,6 +7,7 @@ import com.prj.projectweb.entities.GiangVien;
 import com.prj.projectweb.mapper.CourseMapper;
 import com.prj.projectweb.repositories.CourseRepository;
 import com.prj.projectweb.repositories.GiangVienRepository;
+import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -14,6 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -26,8 +29,9 @@ public class CourseService {
     GiangVienRepository giangVienRepository;
     CourseMapper courseMapper;
 
+    @Transactional
     public String addCourse(CourseRequest courseRequest) throws Exception {
-        log.info("in service add course");
+        log.info("in add course service");
 
         // Kiểm tra tên khóa học đã tồn tại chưa
         if (courseRepository.existsByCourseName(courseRequest.getCourseName())) {
@@ -46,9 +50,33 @@ public class CourseService {
         course.setGiangVien(giangVien);
         giangVien.addCourse(course); // Phương thức tiện ích trong GiangVien
 
+
+        // Thiết lập mối quan hệ cho CourseContent
+        if (course.getCourseContent() != null) {
+            course.getCourseContent().forEach(content -> content.setCourse(course));
+        }
+
+        // Thiết lập mối quan hệ cho Certificate
+        if (course.getCertificate() != null) {
+            course.getCertificate().setCourse(course);
+        }
+
         // Lưu course vào database
         courseRepository.save(course);
 
         return course.getCourseName();
+    }
+
+    @Transactional
+    public List<String> addListCourses(List<CourseRequest> courseRequests) throws Exception {
+        log.info("in add list courses service");
+
+        List<String> courseNames = new ArrayList<>();
+
+        for (CourseRequest courseRequest : courseRequests) {
+            courseNames.add(addCourse(courseRequest));
+        }
+
+        return courseNames;
     }
 }
