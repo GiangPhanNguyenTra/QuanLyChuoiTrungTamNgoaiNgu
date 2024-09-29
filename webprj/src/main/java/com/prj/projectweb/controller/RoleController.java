@@ -1,5 +1,8 @@
 package com.prj.projectweb.controller;
 
+import com.prj.projectweb.dto.request.RoleRequest;
+import com.prj.projectweb.dto.response.ApiResponse;
+import com.prj.projectweb.dto.response.RoleResponse;
 import com.prj.projectweb.entities.Role;
 import com.prj.projectweb.service.RoleService;
 import org.springframework.http.HttpStatus;
@@ -21,38 +24,52 @@ public class RoleController {
 
     // Lấy tất cả các vai trò
     @GetMapping
-    public ResponseEntity<List<Role>> getAllRoles() {
-        List<Role> roles = roleService.getAllRoles();
-        return new ResponseEntity<>(roles, HttpStatus.OK);
+    public ApiResponse<List<RoleResponse>> getAllRoles() {
+        return ApiResponse.<List<RoleResponse>>builder()
+                .result(roleService.getAll())
+                .build();
     }
 
     // Tìm vai trò theo ID
     @GetMapping("/{id}")
-    public ResponseEntity<Role> getRoleById(@PathVariable Long id) {
-        Optional<Role> role = roleService.getRoleById(id);
-        return role.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    public ApiResponse<RoleResponse> getRoleById(@PathVariable Long id) {
+        return ApiResponse.<RoleResponse>builder()
+                .result(roleService.getRoleById(id))
+                .build();
     }
 
     // Thêm vai trò mới
     @PostMapping
-    public ResponseEntity<Role> addRole(@RequestBody Role role) {
-        Role newRole = roleService.addRole(role);
-        return new ResponseEntity<>(newRole, HttpStatus.CREATED);
+    public ApiResponse<RoleResponse> addRole(@RequestBody RoleRequest role) {
+        return ApiResponse.<RoleResponse>builder()
+                .result(roleService.addRole(role))
+                .build();
+    }
+
+    // them list role
+    @PostMapping("/addList")
+    public ApiResponse addListRoles(@RequestBody List<RoleRequest> requests) {
+        roleService.addListRole(requests);
+        return ApiResponse.builder()
+                .message("add " + requests.size() + " roles successfully")
+                .build();
     }
 
     // Cập nhật vai trò
     @PutMapping("/{id}")
-    public ResponseEntity<Role> updateRole(@PathVariable Long id, @RequestBody Role roleDetails) {
-        Optional<Role> updatedRole = roleService.updateRole(id, roleDetails);
-        return updatedRole.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    public ApiResponse<RoleResponse> updateRole(@PathVariable Long id, @RequestBody RoleRequest request) {
+        return ApiResponse.<RoleResponse>builder()
+                .message("update roles succussfully")
+                .result(roleService.updateRole(id, request))
+                .build();
     }
 
     // Xóa vai trò
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteRole(@PathVariable Long id) {
+    public ApiResponse deleteRole(@PathVariable Long id) {
         roleService.deleteRole(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return ApiResponse.builder()
+                .message("delete role with " + id + " successfully")
+                .build();
     }
 }

@@ -1,31 +1,41 @@
 package com.prj.projectweb.entities;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.Getter;
-import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.persistence.*;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 @Setter
 @Getter
 @Entity
-@Table(name = "users")
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class User {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long userId;
+    Long userId;
 
-    private String email;
-    private String fullName;
-    private String phone;
-    private String address;
+    String email;
+    String username;
+    String password;
+    String fullName;
+    String phone;
+    String address;
+    LocalDate dob;
 
-    private String username; // Thêm thuộc tính username
-    private String password; // Thêm thuộc tính password
+    @ManyToOne
+    Role role;
 
+    // Nếu user là học sinh, trường này chứa id của phụ huynh.
+    Long parentId;
 }
 
 

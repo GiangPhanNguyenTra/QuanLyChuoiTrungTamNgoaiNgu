@@ -1,31 +1,25 @@
 package com.prj.projectweb.entities;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.util.Set;
 
 @Setter
 @Getter
 @Entity
-@Table(name = "Role")
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class Role {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long roleId;
 
-    private String roleName1;
+    private String roleName;
 
-    public String getRoleName() {
-        return null;
-    }
-
-    public void setRoleName(String roleName) {
-        roleName1 = roleName;
-    }
+    @ManyToMany
+    private Set<Permission> permissions;
 }
 

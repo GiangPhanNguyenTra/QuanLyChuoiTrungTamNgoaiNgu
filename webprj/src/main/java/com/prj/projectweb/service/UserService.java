@@ -1,58 +1,102 @@
 package com.prj.projectweb.service;
 
+import com.prj.projectweb.dto.request.UserCreationRequest;
+import com.prj.projectweb.dto.response.ApiResponse;
+import com.prj.projectweb.dto.response.ChildOfParentResponse;
+import com.prj.projectweb.dto.response.ParentResponse;
+import com.prj.projectweb.dto.response.UserResponse;
 import com.prj.projectweb.entities.User;
+import com.prj.projectweb.exception.AppException;
+import com.prj.projectweb.exception.ErrorCode;
+import com.prj.projectweb.mapper.UserMapper;
+import com.prj.projectweb.repositories.RoleRepository;
 import com.prj.projectweb.repositories.UserRepository;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@Slf4j
 public class UserService {
+    UserRepository userRepository;
+    UserMapper userMapper;
+    RoleRepository roleRepository;
 
-    private final UserRepository userRepository;
+    public UserResponse createUser(UserCreationRequest request) {
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new AppException(ErrorCode.EMAIL_EXISTED);
+        }
 
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
+        var user = userMapper.toUser(request);
+
+        if (!roleRepository.existsByRoleName(request.getRole())) {
+            throw new AppException(ErrorCode.ROLE_NOTFOUND);
+        }
+
+        var role = roleRepository.findByRoleName(request.getRole());
+        user.setRole(role);
+
+        // Lưu User vào database
+        var savedUser = userRepository.save(user);
+
+        // Khởi tạo phản hồi
+        UserResponse response = userMapper.toUserResponse(savedUser);
+
+        // Xử lý dựa trên vai trò
+        if ("PhuHuynh".equals(request.getRole())) {
+            List<User> children = userRepository.findAllByParentId(savedUser.getUserId());
+            List<ChildOfParentResponse> childResponses = children.stream()
+                    .map(child -> ChildOfParentResponse.builder()
+                            .id(child.getUserId())
+                            .name(child.getFullName())
+                            .build())
+                    .collect(Collectors.toList());
+
+            response.setChildren(childResponses);
+        } else if ("HocVien".equalsIgnoreCase(request.getRole())) {
+            Long parentId = request.getParentId();
+            if (parentId == null) {
+                throw new AppException(ErrorCode.PARENT_NOTFOUND);
+            }
+
+            // Tìm PhuHuynh theo parentId
+            User parent = userRepository.findById(parentId)
+                    .orElseThrow(() -> new AppException(ErrorCode.PARENT_NOTFOUND));
+
+            // Kiểm tra role của parent là PhuHuynh
+            if (!"PhuHuynh".equalsIgnoreCase(parent.getRole().getRoleName())) {
+                throw new AppException(ErrorCode.INVALID_REQUEST);
+            }
+
+            // Thiết lập parentId cho học sinh
+            user.setParentId(parentId);
+
+            // Lưu User (HocSinh)
+            userRepository.save(user);
+
+            // Thiết lập lại phản hồi cho HocSinh
+            response.setChildren(null);
+            response.setParent(ParentResponse.builder()
+                    .email(parent.getEmail())
+                    .userId(parentId)
+                    .fullName(parent.getFullName())
+                    .build());
+        } else {
+            // Các vai trò khác, không cần thiết lập children
+            response.setChildren(null);
+        }
+
+        return response;
     }
 
-    // Lấy tất cả người dùng
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
-    }
-
-    // Tìm người dùng theo ID
-    public Optional<User> getUserById(Long id) {
-        return userRepository.findById(id);
-    }
-
-    // Thêm người dùng
-    public User addUser(User user) {
-        return userRepository.save(user);
-    }
-
-    // Cập nhật người dùng
-    public Optional<User> updateUser(Long id, User userDetails) {
-        return userRepository.findById(id).map(user -> {
-            user.setUsername(userDetails.getUsername());
-            user.setEmail(userDetails.getEmail());
-            user.setFullName(userDetails.getFullName());
-            user.setPhone(userDetails.getPhone());
-            user.setAddress(userDetails.getAddress());
-            user.setPassword(userDetails.getPassword());
-            return userRepository.save(user);
-        });
-    }
-
-    // Xóa người dùng
-    public void deleteUser(Long id) {
-        userRepository.deleteById(id);
-    }
-
-    // Tìm người dùng bằng email
-    public Optional<User> findByEmail(String email) {
-        return Optional.ofNullable(userRepository.findByUsername(email));
-    }
 }
 
 
