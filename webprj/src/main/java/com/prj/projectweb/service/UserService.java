@@ -76,22 +76,19 @@ public class UserService {
                 throw new AppException(ErrorCode.INVALID_REQUEST);
             }
 
-            // Thiết lập parentId cho học sinh
+            // Thiết lập parentId cho HocVien
             user.setParentId(parentId);
 
             // Lưu User (HocSinh)
             userRepository.save(user);
 
-            // Thiết lập lại phản hồi cho HocSinh
-            response.setChildren(null);
+            // Thiết lập lại phản hồi cho HocVien
+
             response.setParent(ParentResponse.builder()
                     .email(parent.getEmail())
                     .userId(parentId)
                     .fullName(parent.getFullName())
                     .build());
-        } else {
-            // Các vai trò khác, không cần thiết lập children
-            response.setChildren(null);
         }
 
         return response;

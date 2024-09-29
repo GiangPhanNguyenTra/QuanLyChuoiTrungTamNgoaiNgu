@@ -10,6 +10,7 @@ import java.util.List;
 public interface UserRepository extends JpaRepository<User, Long> {
     User findByUsername(String username);
     boolean existsByEmail(String email);
+    User findByEmail(String email);
 
     List<User> findAllByParentId(Long parentId);
 }
