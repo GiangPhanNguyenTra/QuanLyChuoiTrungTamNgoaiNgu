@@ -107,4 +107,38 @@ public class CourseService {
         return courseMapper.toCourseRequest(courseRepository.findById(course_id)
                 .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOTFOUND)));
     }
+    @Transactional
+    public String editCourse(Long courseId, CourseRequest courseRequest) throws Exception {
+        log.info("in edit course service");
+
+        // Kiểm tra xem khóa học có tồn tại không
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOTFOUND));
+
+        // Cập nhật các thông tin khóa học
+        course.setCourseName(courseRequest.getCourseName());
+        course.setObjective(courseRequest.getObjective());
+        course.setDuration(courseRequest.getDuration());
+        course.setTuitionFee(courseRequest.getTuitionFee());
+        course.setLearningMethod(courseRequest.getLearningMethod());
+        course.setStartTime(LocalDate.parse(courseRequest.getStartTime()));
+        course.setEndTime(LocalDate.parse(courseRequest.getEndTime()));
+        course.setSchedule(courseRequest.getSchedule());
+        course.setLikes(courseRequest.getLikes());
+        course.setImage(courseRequest.getImage());
+        course.setNumberOfStudents(courseRequest.getNumberOfStudents());
+        course.setObject(courseRequest.getObject());
+
+        // Cập nhật mối quan hệ với GiangVien
+        if (courseRequest.getGiangVien() != null) {
+            GiangVien giangVien = giangVienRepository.findById(courseRequest.getGiangVien().getId())
+                    .orElseThrow(() -> new Exception("GiangVien không tồn tại với id: " + courseRequest.getGiangVien().getId()));
+            course.setGiangVien(giangVien);
+        }
+
+        // Lưu khóa học đã chỉnh sửa vào database
+        courseRepository.save(course);
+
+        return course.getCourseName();
+    }
 }
