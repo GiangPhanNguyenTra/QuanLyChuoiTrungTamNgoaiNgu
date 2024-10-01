@@ -55,4 +55,13 @@ public class CourseController {
                 .result(courseService.getCourseById(course_id))
                 .build();
     }
+    @PutMapping("/edit/{course_id}")
+    ApiResponse<String> editCourse(@PathVariable("course_id") Long courseId, @RequestBody CourseRequest courseRequest) throws Exception {
+        log.info("in edit course controller");
+        String result = courseService.editCourse(courseId, courseRequest);
+        return ApiResponse.<String>builder()
+                .message(result)
+                .result("Chỉnh sửa khóa học thành công")
+                .build();
+    }
 }
