@@ -56,12 +56,23 @@ public class CourseController {
                 .build();
     }
     @PutMapping("/edit/{course_id}")
-    ApiResponse<String> editCourse(@PathVariable("course_id") Long courseId, @RequestBody CourseRequest courseRequest) throws Exception {
-        log.info("in edit course controller");
-        String result = courseService.editCourse(courseId, courseRequest);
-        return ApiResponse.<String>builder()
-                .message(result)
-                .result("Chỉnh sửa khóa học thành công")
-                .build();
+    public ApiResponse<String> editCourse(@PathVariable("course_id") Long courseId, @RequestBody CourseRequest courseRequest) {
+        log.info("đang trong controller chỉnh sửa khóa học");
+        try {
+            courseService.editCourse(courseId, courseRequest);
+            return ApiResponse.<String>builder()
+                    .message("Chỉnh sửa khóa học thành công")
+                    .build();
+        }
+        catch (AppException e) {
+            return ApiResponse.<String>builder()
+                    .message("Chỉnh sửa khóa học thất bại: " + e.getMessage())
+                    .build();
+        }
+        catch (Exception e) {
+            return ApiResponse.<String>builder()
+                    .message("Có lỗi xảy ra: " + e.getMessage())
+                    .build();
+        }
     }
 }
