@@ -112,33 +112,31 @@ public class CourseService {
         log.info("in edit course service");
 
         // Kiểm tra xem khóa học có tồn tại không
-        Course course = courseRepository.findById(courseId)
+        Course existingCourse = courseRepository.findById(courseId)
                 .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOTFOUND));
 
-        // Cập nhật các thông tin khóa học
-        course.setCourseName(courseRequest.getCourseName());
-        course.setObjective(courseRequest.getObjective());
-        course.setDuration(courseRequest.getDuration());
-        course.setTuitionFee(courseRequest.getTuitionFee());
-        course.setLearningMethod(courseRequest.getLearningMethod());
-        course.setStartTime(LocalDate.parse(courseRequest.getStartTime()));
-        course.setEndTime(LocalDate.parse(courseRequest.getEndTime()));
-        course.setSchedule(courseRequest.getSchedule());
-        course.setLikes(courseRequest.getLikes());
-        course.setImage(courseRequest.getImage());
-        course.setNumberOfStudents(courseRequest.getNumberOfStudents());
-        course.setObject(courseRequest.getObject());
+        try {
+            // Chỉ cần cập nhật các trường cần thiết từ courseRequest
+            existingCourse.setCourseName(courseRequest.getCourseName());
+            existingCourse.setObjective(courseRequest.getObjective());
+            existingCourse.setDuration(courseRequest.getDuration());
+            existingCourse.setTuitionFee(courseRequest.getTuitionFee());
+            existingCourse.setLearningMethod(courseRequest.getLearningMethod());
+            existingCourse.setStartTime(LocalDate.parse(courseRequest.getStartTime()));
+            existingCourse.setEndTime(LocalDate.parse(courseRequest.getEndTime()));
+            existingCourse.setSchedule(courseRequest.getSchedule());
+            existingCourse.setLikes(courseRequest.getLikes());
+            existingCourse.setImage(courseRequest.getImage());
+            existingCourse.setNumberOfStudents(courseRequest.getNumberOfStudents());
+            existingCourse.setObject(courseRequest.getObject());
 
-        // Cập nhật mối quan hệ với GiangVien
-        if (courseRequest.getGiangVien() != null) {
-            GiangVien giangVien = giangVienRepository.findById(courseRequest.getGiangVien().getId())
-                    .orElseThrow(() -> new Exception("GiangVien không tồn tại với id: " + courseRequest.getGiangVien().getId()));
-            course.setGiangVien(giangVien);
+            // Lưu thay đổi vào database
+            courseRepository.save(existingCourse);
+
+            return "Cập nhật khóa học thành công";
+        } catch (Exception e) {
+            // Nếu có lỗi xảy ra trong quá trình lưu trữ, ném một ngoại lệ
+            throw new AppException(ErrorCode.COURSE_UPDATE_FAILED);
         }
-
-        // Lưu khóa học đã chỉnh sửa vào database
-        courseRepository.save(course);
-
-        return course.getCourseName();
     }
 }
